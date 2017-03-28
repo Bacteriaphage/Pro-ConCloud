@@ -3,7 +3,7 @@ import crawler
 import re
 
 class CustComm:
-    cust = ''
+    cust = ''# {{{
     point = 0.0
     comment = ''
     def __init__(self, cust, point, comment):
@@ -11,10 +11,11 @@ class CustComm:
         self.point = point
         self.comment = comment
     def __init__(self):
-        pass
+        pass# }}}
 crawler.start()
 dataArray = []
-soup = BeautifulSoup(open('reviewPages/review.html').read().replace('<br>','') , "html.parser")
+fopen =  open('reviewPages/review.html')
+soup = BeautifulSoup(fopen, "html.parser")
 rawData = soup.find_all(class_="a-section review")
 for row in rawData:
     now = CustComm()
@@ -22,8 +23,14 @@ for row in rawData:
     rawPoint = row.find('i').string
     point = re.search('(.+?) out of 5 stars', rawPoint)
     now.point = float(point.group(1))
-    now.comment = row.find('span', class_="a-size-base review-text").string
+    rawComment = row.find('span', class_="a-size-base review-text").text
+    now.comment = rawComment.encode("UTF-8")
+    print rawComment
+#    for e in rawComment.find_all('br'):
+#        e.decompose()
+#    now.comment = rawComment.string
     dataArray.append(now)
 for data in dataArray:
     print data.cust, data.point
     print data.comment
+fopen.close()
