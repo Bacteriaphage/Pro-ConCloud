@@ -1,3 +1,8 @@
+#**********************************************
+#*crawler.py
+#*crawling up to 10 pages comment to local disk
+#*waiting for next progress
+#**********************************************
 import urllib2,os,sys,time,glob
 
 def start():
