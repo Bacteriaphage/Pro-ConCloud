@@ -3,11 +3,12 @@
 #*crawling up to 10 pages comment to local disk
 #*waiting for next progress
 #**********************************************
-import urllib2,os,sys,time,glob
+import urllib2,os,sys,time,glob,cookielib
 
 def start():
-        browser = urllib2.build_opener()
-
+        jar = cookielib.LWPCookieJar("cookies")
+        browser = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        
         browser.addheaders=[('User-agent', 'Mozilla/5.0')]
 
         if not os.path.exists('reviewPages'):os.mkdir('reviewPages')
@@ -20,7 +21,7 @@ def start():
         print 'start crawler...'
         i = 1
         bad = False
-        for i in range(1,11):
+        for i in range(1,20):
                 try:
                     response = browser.open(url+'&pageNumber='+str(i))
                 except Exception as e:
@@ -35,6 +36,7 @@ def start():
                 fwriter=open('reviewPages/review'+str(i)+'.html','w')
                 fwriter.write(myHTML)
                 fwriter.close()
+                time.sleep(.100)
         if bad:
             return i-1
         else:

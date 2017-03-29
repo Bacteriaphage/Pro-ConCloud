@@ -1,8 +1,9 @@
 from bs4 import BeautifulSoup
-import crawler
+import crawler,statistics
 import re
 import concurrent.futures
-
+import wordcloud as wc
+import sys,os,glob
 class CustComm:                             #This class is a structure stores cust, stars and comment for one cust
 # {{{
     _cust = ''
@@ -16,12 +17,14 @@ class CustComm:                             #This class is a structure stores cu
         pass
 # }}}
 #extract raw data in to CustComm data structure
-def extract_info(dataArray, start, total, gap):
+def extract_info(start, total, gap):
 # {{{
+    dataArray=[]
     for i in range(start, total+1, gap):
-        fopen =  open('reviewPages/review'+str(i)+'.html', 'r')
+        fopen = open('reviewPages/review'+str(i)+'.html', 'r')
         soup = BeautifulSoup(fopen, "html.parser")
         rawData = soup.find_all(class_="a-section review") #find all comment section in HTML
+        fopen.close()
         for row in rawData:
             now = CustComm()
             now.cust = row['id']
@@ -34,14 +37,13 @@ def extract_info(dataArray, start, total, gap):
 #        for data in dataArray:
 #            print data.cust, data.point
 #            print data.comment
-        fopen.close()
-    return 'finish at '+str(i)+'page'
+    return dataArray
 # }}}
 #read pos and neg word from files
 def fillDict(pos, neg):
 # {{{
-    pfopen = open('negative.txt', 'r')
-    nfopen = open('positive.txt', 'r')
+    nfopen = open('negative.txt', 'r')
+    pfopen = open('positive.txt', 'r')
     for line in pfopen:
         pos.add(line.strip())
     for line in nfopen:
@@ -50,7 +52,7 @@ def fillDict(pos, neg):
     nfopen.close()
 # }}}
 
-def main():
+def main(argv):
 # {{{
     filenum = crawler.start()
     print "crawling web page..."
@@ -61,14 +63,30 @@ def main():
 
     print "extracting data..."
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        future_to_ext = {executor.submit(extract_info, dataArray, start, filenum, 4): start for start in range(1,5)}
+        future_to_ext = {executor.submit(extract_info, start, filenum, 4): start for start in range(1,5)}
         for future in concurrent.futures.as_completed(future_to_ext):
-            print future.result()
-    print "extract",len(dataArray),"comment"
+            dataArray.extend(future.result())
+    print "extract",len(dataArray),"comments"
     fillDict(positive, negative)
     print "read all sample word"
-    print dataArray[0].comment 
+    if argv[1] == '-d':
+        if len(argv) == 2:
+            print "invalid option"
+        elif argv[2] == '-p':
+            adict = statistics.match(positive, dataArray)
+        elif argv[2] == '-n':
+            adict = statistics.match(negative, dataArray)
+        thiswc = wc.WordCloud(background_color='white', height=600, width=800)
+        thiswc.fit_words(adict)
+        if argv[2] == '-p':
+            if os.path.exists('posiPic.jpg'):
+                os.remove('posiPic.jpg')
+            thiswc.to_file("posiPic.jpg")
+        elif argv[2] == '-n':
+            if os.path.exists('negaPic.jpg'):
+                os.remove('negaPic.jpg')
+            thiswc.to_file("negaPic.jpg")
 # }}}
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
 
