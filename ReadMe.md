@@ -35,6 +35,7 @@ No argument:
     exit              Exit program.
 
 Draw:
+
     <Enter>           Show all drawing option.
     positive          Draw a word cloud for all positive words.
     negative          Draw a word cloud for all negative words.
