@@ -36,7 +36,7 @@ def start():
                 fwriter=open('reviewPages/review'+str(i)+'.html','w')
                 fwriter.write(myHTML)
                 fwriter.close()
-                time.sleep(.100)
+                time.sleep(.01)
         if bad:
             return i-1
         else:
