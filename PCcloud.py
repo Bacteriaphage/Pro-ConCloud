@@ -9,7 +9,7 @@ import crawler,statistics,misc
 import re
 import concurrent.futures
 import wordcloud as wc
-import sys,os,glob
+import sys,os,glob,getopt
 
 class CustComm:                             #This class is a structure stores cust, stars and comment for one cust
 # {{{
@@ -81,40 +81,46 @@ def main(argv):
     print "read all sample word"
     if len(argv) == 1:
         misc.call(dataArray, positive, negative)
-    elif argv[1] == '-d':
-        if len(argv) == 2:
-            print "invalid option"
-        elif argv[2] == '-p':
-            adict = statistics.match(positive, dataArray)
-        elif argv[2] == '-n':
-            adict = statistics.match(negative, dataArray)
-        elif argv[2] == '-b':
-            adict = statistics.match(positive, dataArray)
-            adict.update(statistics.match(negative, dataArray))
-        elif argv[2] == '-a':
-            adict = statistics.count(dataArray)
-        else: print "use --help to see instruction"
-        thiswc = wc.WordCloud(background_color='white', height=600, width=800)
-        thiswc.fit_words(adict)
-        if argv[2] == '-p':
-            if os.path.exists('posiPic.jpg'):
-                os.remove('posiPic.jpg')
-            thiswc.to_file("posiPic.jpg")
-        elif argv[2] == '-n':
-            if os.path.exists('negaPic.jpg'):
-                os.remove('negaPic.jpg')
-            thiswc.to_file("negaPic.jpg")
-        elif argv[2] == '-b':
-            if os.path.exists('PnNPic.jpg'):
-                os.remove('PnNPic.jpg')
-            thiswc.to_file("PnNPic.jpg")
-        elif argv[2] == '-a':
-            if os.path.exists('allPic.jpg'):
-                os.remove('allPic.jpg')
-            thiswc.to_file("allPic.jpg")
-    elif argv[1] == '-p':
-        print "The average star of this product is:", statistics.avgPoint(dataArray)
-    else: print "use --help to see instruction"
+    else:
+        try:
+            opts, args = getopt.getopt(argv[1:], 'dp:n:b:a:', 'help')
+        except getopt.GetoptError as err:
+            print "use --help to see options"
+            exit(0)
+        print opts
+        if opts[0][0] == '-d':
+            if len(opts) == 1:
+                print "invalid option"
+            elif opts[1][0] == '-p':
+                adict = statistics.match(positive, dataArray)
+            elif opts[1][0] == '-n':
+                adict = statistics.match(negative, dataArray)
+            elif opts[1][0] == '-b':
+                adict = statistics.match(positive, dataArray)
+                adict.update(statistics.match(negative, dataArray))
+            elif opts[1][0] == '-a':
+                adict = statistics.count(dataArray)
+            else: print "use --help to see options(0)"
+            thiswc = wc.WordCloud(background_color='white', height=600, width=800)
+            thiswc.fit_words(adict)
+            filename = ''
+            if opts[1][0] == '-p':
+                filename = 'posiPic.jpg'
+            elif opts[1][0] == '-n':
+                filename = 'negaPic.jpg'
+            elif opts[1][0] == '-a':
+                filename = 'allPic.jpg'
+            elif opts[1][0] == '-b':
+                filename = 'bothPic.jpg'
+            else: print "use --help to see options(1)"
+            if opts[1][1] != '':
+                filename = opts[1][1]
+            if os.path.exists(filename):
+                 os.remove(filename)
+            thiswc.to_file(filename)
+        elif opts[0][0] == '-p':
+            print "The average star of this product is:", statistics.avgPoint(dataArray)
+        else: print "use --help to see instruction(2)"
 # }}}
 
 if __name__ == '__main__':
